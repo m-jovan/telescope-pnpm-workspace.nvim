@@ -51,10 +51,15 @@ local function list_projects()
 
   local projects = {}
   for block in output:gmatch(pattern) do
-    local decoded = vim.fn.json_decode(block)
+    local ok, decoded = pcall(vim.fn.json_decode, block)
+    if not ok or type(decoded) ~= 'table' then
+      vim.notify('telescope-pnpm-workspace: failed to parse pnpm list output', vim.log.levels.WARN)
+      break
+    end
     local project = not_swl and decoded[1] or decoded
-
-    table.insert(projects, project)
+    if project and project.name and project.path then
+      table.insert(projects, project)
+    end
   end
 
   _projects_cache = projects
