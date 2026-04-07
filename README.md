@@ -28,11 +28,33 @@ After telescope setup (`require('telescope').setup()`) load the extension with:
 require('telescope').load_extension('pnpm_workspace')
 ```
 
+### Configuration
+
+Options can be set under the `pnpm_workspace` key in `telescope.setup`:
+
+```lua
+require('telescope').setup {
+  extensions = {
+    pnpm_workspace = {
+      separator  = '  |  ',  -- separator between label and file path
+      label_width = nil,     -- fixed label column width; nil = auto (longest package name)
+      exclude = {},          -- lua patterns matched against package name or path
+    }
+  }
+}
+```
+
+**`exclude` examples:**
+
+```lua
+exclude = { '^private%-', 'apps/mobile' }
+```
+
 ## Usage
 
 ### Find packages
 
-Find packages in the pnpm workspace and open the package directory. Names of the packages are shown per `package.json` name field.
+Browse all packages in the workspace. Selecting a package opens `find_files` scoped to that package.
 
 Via command:
 
@@ -43,45 +65,39 @@ Via command:
 Via keymap:
 
 ```lua
-vim.keymap.set('n', '<leader>fp', function() require('telescope').extensions.pnpm_workspace.find_packages() end)
+vim.keymap.set('n', '<leader>fp', function()
+  require('telescope').extensions.pnpm_workspace.find_packages()
+end)
 ```
 
 ### Use custom entry maker
 
-You can use the custom entry maker to customize the way search results are displayed. With a default entry maker, the search results are displayed as file path which is not very readable in a monorepo. The custom entry maker adds a label with the package name and the file path from the package root.
-
-Telescope builtins as `find_files` and `live_grep` can be easily extended with the custom entry maker.
+Makes `find_files` and `live_grep` display results as `[package-name] | path/from/package/root` instead of full file paths — much more readable in a monorepo.
 
 ```lua
 vim.keymap.set('n', '<leader>sf', function()
-    local entry_maker = require('telescope').extensions.pnpm_workspace.get_entry_maker()
-    require('telescope.builtin').find_files({
-        entry_maker = entry_maker
-    })
+  local entry_maker = require('telescope').extensions.pnpm_workspace.get_entry_maker()
+  require('telescope.builtin').find_files({ entry_maker = entry_maker })
 end)
 ```
 
-Customize the display to your needs:
+To override the display for a specific keymap, pass a custom `entry_display`:
 
 ```lua
 vim.keymap.set('n', '<leader>sf', function()
-    local entry_display = require 'telescope.pickers.entry_display'
+  local entry_display = require 'telescope.pickers.entry_display'
 
-    local display = entry_display.create {
-        separator = ' | ',        -- Separator between the lable and the file path
-        items = {
-            { width: 20 },        -- Label width (set to your needs per min/max package name length)
-            { remaining = true }, -- File path width
-        }
+  local display = entry_display.create {
+    separator = ' | ',
+    items = {
+      { width = 20 },        -- fixed label width
+      { remaining = true },
     }
+  }
 
-    -- pass the display to the entry maker factory as opts
-    local entry_maker = require('telescope').extensions.pnpm_workspace.get_entry_maker({display = display})
-
-    require('telescope.builtin').find_files({
-        entry_maker = entry_maker
-    })
+  local entry_maker = require('telescope').extensions.pnpm_workspace.get_entry_maker({ display = display })
+  require('telescope.builtin').find_files({ entry_maker = entry_maker })
 end)
 ```
 
-In case entry maker cannot find packages or build the entry, it will fallback to the default entry maker.
+`get_entry_maker` returns `nil` when called outside a pnpm workspace, causing Telescope to fall back to its default entry maker automatically.
