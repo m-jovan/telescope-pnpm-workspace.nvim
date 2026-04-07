@@ -7,6 +7,11 @@ local action_state = require 'telescope.actions.state'
 local builtin = require 'telescope.builtin'
 local pnpmw = require 'pnpm_workspace'
 
+local ext_config = {
+  separator = '  |  ',
+  label_width = nil, -- auto-computed from package names when nil
+}
+
 local function find_packages(opts)
   opts = opts or {}
 
@@ -52,9 +57,9 @@ local function make_display(projects)
     end
   end
   return entry_display.create {
-    separator = '  |  ',
+    separator = ext_config.separator,
     items = {
-      { width = max_width },
+      { width = ext_config.label_width or max_width },
       { remaining = true },
     },
   }
@@ -102,6 +107,9 @@ local function get_entry_maker(opts)
 end
 
 return require('telescope').register_extension {
+  setup = function(user_config)
+    ext_config = vim.tbl_deep_extend('force', ext_config, user_config or {})
+  end,
   exports = {
     find_packages = find_packages,
     get_entry_maker = get_entry_maker,
