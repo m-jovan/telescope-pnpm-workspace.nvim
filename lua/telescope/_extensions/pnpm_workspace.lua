@@ -43,9 +43,14 @@ local display = entry_display.create {
 
 local function get_entry_maker(opts)
   opts = opts or {}
+
+  if not pnpmw.is_pnpm_workspace() then
+    return
+  end
+
   local projects = pnpmw.list_projects()
 
-  if projects == nil or #projects == 0 or vim.fn.getcwd() ~= projects[1].path then
+  if projects == nil or #projects == 0 then
     return
   end
 

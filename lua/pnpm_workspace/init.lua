@@ -61,9 +61,24 @@ local function list_projects()
   return projects
 end
 
+local function is_pnpm_workspace()
+  local path = vim.fn.getcwd()
+  while path ~= '/' do
+    if
+      vim.fn.filereadable(path .. '/pnpm-workspace.yaml') == 1
+      or vim.fn.filereadable(path .. '/pnpm-workspace.yml') == 1
+    then
+      return true
+    end
+    path = vim.fn.fnamemodify(path, ':h')
+  end
+  return false
+end
+
 local M = {}
 
 M.list_projects = list_projects
 M.get_pnpm_config = get_pnpm_config
+M.is_pnpm_workspace = is_pnpm_workspace
 
 return M
