@@ -10,7 +10,7 @@ local function find_packages(opts)
   local projects = pnpmw.list_projects()
 
   if projects == nil or #projects == 0 then
-    print 'No packages found. Make sure you are in a pnpm workspace'
+    vim.notify('telescope-pnpm-workspace: no packages found', vim.log.levels.WARN)
     return
   end
 

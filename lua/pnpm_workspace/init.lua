@@ -26,9 +26,15 @@ local function list_projects()
     return _projects_cache
   end
 
+  if vim.fn.executable 'pnpm' == 0 then
+    vim.notify('telescope-pnpm-workspace: pnpm not found in PATH', vim.log.levels.ERROR)
+    return
+  end
+
   local handle = io.popen 'pnpm list --recursive --json --depth -1'
 
   if handle == nil then
+    vim.notify('telescope-pnpm-workspace: failed to run pnpm list', vim.log.levels.ERROR)
     return
   end
 
