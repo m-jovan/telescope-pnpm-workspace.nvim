@@ -58,12 +58,14 @@ local function get_entry_maker(opts)
     local label, path
 
     for _, project in pairs(projects) do
-      local project_workspace_path = project.path:sub(project.path:match '.*()/.*/' + 1)
-
-      if vim.startswith(entry, project_workspace_path) then
-        label = project.name
-        path = entry:sub(#project_workspace_path + 2)
-        break
+      local match_pos = project.path:match '.*()/.*/';
+      if match_pos then
+        local project_workspace_path = project.path:sub(match_pos + 1)
+        if vim.startswith(entry, project_workspace_path) then
+          label = project.name
+          path = entry:sub(#project_workspace_path + 2)
+          break
+        end
       end
     end
 
