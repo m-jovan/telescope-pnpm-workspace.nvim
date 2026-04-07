@@ -1,3 +1,13 @@
+local _projects_cache = nil
+
+vim.api.nvim_create_autocmd('BufWritePost', {
+  pattern = 'package.json',
+  callback = function()
+    _projects_cache = nil
+  end,
+  group = vim.api.nvim_create_augroup('PnpmWorkspaceCache', { clear = true }),
+})
+
 local function get_pnpm_config()
   local config_handle = io.popen 'pnpm config list --json'
 
@@ -12,6 +22,10 @@ local function get_pnpm_config()
 end
 
 local function list_projects()
+  if _projects_cache then
+    return _projects_cache
+  end
+
   local handle = io.popen 'pnpm list --recursive --json --depth -1'
 
   if handle == nil then
@@ -25,6 +39,8 @@ local function list_projects()
 
   local output = handle:read '*a'
 
+  handle:close()
+
   local pattern = not_swl and '%b[]' or '%b{}'
 
   local projects = {}
@@ -35,8 +51,7 @@ local function list_projects()
     table.insert(projects, project)
   end
 
-  handle:close()
-
+  _projects_cache = projects
   return projects
 end
 
