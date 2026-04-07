@@ -33,13 +33,21 @@ local function find_packages(opts)
     :find()
 end
 
-local display = entry_display.create {
-  separator = '  |  ',
-  items = {
-    { width = 20 },
-    { remaining = true },
-  },
-}
+local function make_display(projects)
+  local max_width = 0
+  for _, p in ipairs(projects) do
+    if #p.name > max_width then
+      max_width = #p.name
+    end
+  end
+  return entry_display.create {
+    separator = '  |  ',
+    items = {
+      { width = max_width },
+      { remaining = true },
+    },
+  }
+end
 
 local function get_entry_maker(opts)
   opts = opts or {}
@@ -53,6 +61,8 @@ local function get_entry_maker(opts)
   if projects == nil or #projects == 0 then
     return
   end
+
+  local display = opts.display or make_display(projects)
 
   return function(entry)
     local label, path
@@ -71,7 +81,7 @@ local function get_entry_maker(opts)
 
     return {
       value = entry,
-      display = opts.display or display {
+      display = display {
         label or projects[1].name,
         path or entry,
       },
