@@ -36,6 +36,11 @@ end
 local function find_packages(opts)
   opts = opts or {}
 
+  if not pnpmw.is_pnpm_workspace() then
+    vim.notify('telescope-pnpm-workspace: not in a pnpm workspace', vim.log.levels.WARN)
+    return
+  end
+
   local projects = pnpmw.list_projects()
 
   if projects == nil or #projects == 0 then
