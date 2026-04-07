@@ -10,7 +10,28 @@ local pnpmw = require 'pnpm_workspace'
 local ext_config = {
   separator = '  |  ',
   label_width = nil, -- auto-computed from package names when nil
+  exclude = {}, -- list of lua patterns matched against package name or path
 }
+
+local function filter_projects(projects)
+  if not ext_config.exclude or #ext_config.exclude == 0 then
+    return projects
+  end
+  local filtered = {}
+  for _, p in ipairs(projects) do
+    local excluded = false
+    for _, pattern in ipairs(ext_config.exclude) do
+      if p.name:match(pattern) or p.path:match(pattern) then
+        excluded = true
+        break
+      end
+    end
+    if not excluded then
+      table.insert(filtered, p)
+    end
+  end
+  return filtered
+end
 
 local function find_packages(opts)
   opts = opts or {}
@@ -21,6 +42,8 @@ local function find_packages(opts)
     vim.notify('telescope-pnpm-workspace: no packages found', vim.log.levels.WARN)
     return
   end
+
+  projects = filter_projects(projects)
 
   pickers
     .new(opts, {
@@ -78,6 +101,7 @@ local function get_entry_maker(opts)
     return
   end
 
+  projects = filter_projects(projects)
   local display = opts.display or make_display(projects)
 
   return function(entry)
